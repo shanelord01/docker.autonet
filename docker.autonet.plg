@@ -8,8 +8,8 @@
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/&name;.plg">
 <!ENTITY support "https://forums.unraid.net/topic/200314-plugin-docker-autonet/">
-<!ENTITY version "2026.08.20.14">
-<!ENTITY md5 "f0bd2b5bd2bfa9b9bf0365502f41ee9c">
+<!ENTITY version "2026.08.20.15">
+<!ENTITY md5 "a733cfa97d8981a2443f894274a29beb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" support="&support;" icon="icon.png" min="7.2.0">
