@@ -5,6 +5,13 @@ namespace DockerAutonet\Service;
 require_once(__DIR__ . "/../config/Config.php");
 require_once(__DIR__ . "/Reconciler.php");
 
+$documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
+// DockerTemplates::getTemplates() reads `global $dockerManPaths`, which this
+// include only populates correctly when required at file scope - requiring
+// it from inside a function/method leaves that global unset and every path
+// it resolves comes back null.
+require_once("$documentRoot/plugins/dynamix.docker.manager/include/DockerClient.php");
+
 use DockerAutonet\Config\Config;
 
 class ContainerState
@@ -20,6 +27,8 @@ class ContainerState
         $reconciler = new Reconciler($config, dryRun: true);
         $attrs = $reconciler->allContainerAttrs();
         $aliasLabel = $config["alias_label"];
+
+        $templatedNames = self::templatedContainerNames();
 
         $rows = [];
         foreach ($attrs as $attr) {
@@ -51,7 +60,7 @@ class ContainerState
 
             $rows[] = [
                 "name" => $name,
-                "has_template" => self::hasUserTemplate($name),
+                "has_template" => in_array(strtolower($name), $templatedNames, true),
                 "mappings" => $mappings,
             ];
         }
@@ -60,20 +69,28 @@ class ContainerState
         return $rows;
     }
 
-    private static function hasUserTemplate(string $containerName): bool
+    /**
+     * Lowercased container names with a Docker Manager template, loaded
+     * once and cached for the life of the request - avoids re-parsing
+     * every template's XML once per container.
+     */
+    private static function templatedContainerNames(): array
     {
-        $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
-        require_once("$documentRoot/plugins/dynamix.docker.manager/include/DockerClient.php");
+        static $names = null;
+        if ($names !== null) {
+            return $names;
+        }
 
+        $names = [];
         $dockerTemplates = new \DockerTemplates();
         foreach ($dockerTemplates->getTemplates('user') as $file) {
             $doc = new \DOMDocument('1.0', 'utf-8');
             $doc->load($file['path']);
             $foundName = $doc->getElementsByTagName('Name')->item(0)->nodeValue ?? '';
-            if (strtolower($foundName) === strtolower($containerName)) {
-                return true;
+            if ($foundName !== '') {
+                $names[] = strtolower($foundName);
             }
         }
-        return false;
+        return $names;
     }
 }
