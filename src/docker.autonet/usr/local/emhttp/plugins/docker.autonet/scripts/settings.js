@@ -1,14 +1,38 @@
 $(document).ready(function () {
-    $(".autonet-tab-button").on("click", function () {
-        const tab = $(this).data("tab");
+    function selectTab(tab) {
         $(".autonet-tab-button").removeClass("autonet-tab-active");
-        $(this).addClass("autonet-tab-active");
+        $(".autonet-tab-button[data-tab='" + tab + "']").addClass("autonet-tab-active");
         $(".autonet-tab-panel").removeClass("autonet-tab-active");
         $("#autonet-tab-" + tab).addClass("autonet-tab-active");
         if (tab === "activity") {
             autonetLoadActivity();
         }
+    }
+
+    $(".autonet-tab-button").on("click", function () {
+        selectTab($(this).data("tab"));
     });
+
+    const hashTab = window.location.hash.replace("#", "");
+    if (hashTab && $("#autonet-tab-" + hashTab).length) {
+        selectTab(hashTab);
+    }
+
+    $(".autonet-c-enabled").on("change", function () {
+        const $row = $(this).closest("td");
+        const $alias = $row.find(".autonet-c-alias");
+        $alias.prop("disabled", !this.checked);
+    });
+
+    $("#autonet-container-filter").on("input", function () {
+        const term = $(this).val().toLowerCase();
+        $(".autonet-container-row").each(function () {
+            const name = $(this).data("container").toLowerCase();
+            $(this).toggle(name.includes(term));
+        });
+    });
+
+    $("#autonet-save-containers").on("click", autonetSaveContainers);
 
     $("#autonet-add-row").on("click", function () {
         $("#autonet-mappings-table tbody").append(
@@ -44,6 +68,65 @@ $(document).ready(function () {
 
     $("#autonet-refresh-activity").on("click", autonetLoadActivity);
 });
+
+function autonetSaveContainers() {
+    const changes = [];
+
+    $(".autonet-container-row").each(function () {
+        const container = $(this).data("container");
+        const mappings = {};
+        let dirty = false;
+
+        $(this).find(".autonet-c-enabled").each(function () {
+            const index = $(this).data("mapping");
+            const enabled = this.checked;
+            const origEnabled = $(this).data("orig") == "1";
+            const $alias = $(this).closest("td").find(".autonet-c-alias");
+            const alias = $alias.val().trim();
+            const origAlias = String($alias.data("orig") ?? "");
+
+            if (enabled !== origEnabled || (enabled && alias !== origAlias)) {
+                dirty = true;
+            }
+            mappings[index] = { enabled, alias };
+        });
+
+        if (dirty) {
+            changes.push({ container, mappings });
+        }
+    });
+
+    const $result = $("#autonet-containers-result");
+    if (changes.length === 0) {
+        $result.html("<p>No changes to save.</p>");
+        return;
+    }
+
+    $result.html("<p>Saving...</p>");
+    $.ajax({
+        url: "/plugins/docker.autonet/server/service/SaveContainerLabels.php",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ changes }),
+        success: function (data) {
+            const parsed = typeof data === "string" ? JSON.parse(data) : data;
+            const containers = parsed.containers || [];
+            if (containers.length === 0) {
+                $result.html("<p>No changes were needed.</p>");
+                return;
+            }
+            $result.html(
+                "<p>Updated: " + containers.join(", ") +
+                ". These containers need to be recreated for the new labels to take effect.</p>" +
+                '<button type="button" id="autonet-apply-recreate">Recreate now</button>'
+            );
+            $("#autonet-apply-recreate").on("click", function () {
+                const names = containers.map(c => encodeURIComponent(c));
+                openDocker("update_container " + names.join("*"), _("Updating " + containers.length + " Containers"), "", "loadlist");
+            });
+        }
+    });
+}
 
 function autonetLoadActivity() {
     $.get("/plugins/docker.autonet/server/service/Activity.php", function (data) {

@@ -6,10 +6,13 @@ Markdown="false"
 <?
     $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
     require_once("$documentRoot/plugins/docker.autonet/server/config/Config.php");
+    require_once("$documentRoot/plugins/docker.autonet/server/service/ContainerState.php");
     use DockerAutonet\Config\Config;
+    use DockerAutonet\Service\ContainerState;
 
     $message = Config::formSubmit();
     $config = Config::load();
+    $containerRows = ContainerState::list($config);
 ?>
 
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/docker.autonet/styles/styles.css")?>">
@@ -17,8 +20,7 @@ Markdown="false"
 
 <h3>Docker Autonet</h3>
 <p>Connects containers to Docker networks automatically, based on labels. Configure which label keys map to
-which networks below, then use <b>Add Labels</b> on the Docker page to tag containers, or set the labels
-directly in a template or compose file.</p>
+which networks under <b>Mappings</b>, then turn containers on or off per network under <b>Containers</b>.</p>
 
 <? if ($message): ?>
 <p class="autonet-message"><?= htmlspecialchars($message) ?></p>
@@ -26,6 +28,7 @@ directly in a template or compose file.</p>
 
 <div class="autonet-tabs">
     <button type="button" class="autonet-tab-button autonet-tab-active" data-tab="basic">Mappings</button>
+    <button type="button" class="autonet-tab-button" data-tab="containers">Containers</button>
     <button type="button" class="autonet-tab-button" data-tab="advanced">Advanced</button>
     <button type="button" class="autonet-tab-button" data-tab="activity">Activity</button>
 </div>
@@ -81,3 +84,53 @@ directly in a template or compose file.</p>
 </form>
 
 <div id="autonet-test-results"></div>
+
+<div id="autonet-tab-containers" class="autonet-tab-panel">
+    <? if (empty($config["mappings"])): ?>
+    <p>Add a mapping under the Mappings tab first.</p>
+    <? else: ?>
+    <input type="text" id="autonet-container-filter" placeholder="Filter containers...">
+    <table id="autonet-containers-table" class="autonet-table">
+        <thead>
+            <tr>
+                <th>Container</th>
+                <? foreach ($config["mappings"] as $mapping): ?>
+                <th><?= htmlspecialchars($mapping["network"]) ?></th>
+                <? endforeach; ?>
+            </tr>
+        </thead>
+        <tbody>
+            <? foreach ($containerRows as $row): ?>
+            <tr class="autonet-container-row" data-container="<?= htmlspecialchars($row["name"]) ?>">
+                <td>
+                    <?= htmlspecialchars($row["name"]) ?>
+                    <? if (!$row["has_template"]): ?>
+                    <div class="autonet-hint">Not managed by Docker Manager - edit its compose file directly.</div>
+                    <? endif; ?>
+                </td>
+                <? foreach ($row["mappings"] as $index => $m): ?>
+                <td>
+                    <label class="autonet-toggle">
+                        <input type="checkbox" class="autonet-c-enabled" data-mapping="<?= $index ?>"
+                            data-orig="<?= $m["enabled"] ? "1" : "0" ?>"
+                            <?= $m["enabled"] ? "checked" : "" ?> <?= $row["has_template"] ? "" : "disabled" ?>>
+                        Connect
+                    </label>
+                    <input type="text" class="autonet-c-alias" data-mapping="<?= $index ?>"
+                        data-orig="<?= htmlspecialchars($m["alias"]) ?>"
+                        value="<?= htmlspecialchars($m["alias"]) ?>" placeholder="<?= htmlspecialchars($row["name"]) ?>"
+                        <?= ($row["has_template"] && $m["enabled"]) ? "" : "disabled" ?>>
+                    <span class="autonet-dot <?= $m["connected"] ? "autonet-dot-connected" : "autonet-dot-pending" ?>"></span>
+                    <span class="autonet-status-text"><?= $m["connected"] ? "connected" : "not connected" ?></span>
+                </td>
+                <? endforeach; ?>
+            </tr>
+            <? endforeach; ?>
+        </tbody>
+    </table>
+    <div class="autonet-actions">
+        <button type="button" id="autonet-save-containers">Save changes</button>
+    </div>
+    <div id="autonet-containers-result"></div>
+    <? endif; ?>
+</div>

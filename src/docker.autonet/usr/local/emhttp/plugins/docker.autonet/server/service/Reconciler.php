@@ -60,6 +60,16 @@ class Reconciler
         return $fallback;
     }
 
+    /**
+     * Raw `docker inspect` output for every container on the host. Used by
+     * the Containers settings tab to show current state for containers
+     * that aren't yet part of any mapping, not just ones already managed.
+     */
+    public function allContainerAttrs(): array
+    {
+        return $this->inspectContainers($this->listContainerIds());
+    }
+
     private function listContainerIds(): array
     {
         $result = $this->exec("docker ps -aq --no-trunc");
