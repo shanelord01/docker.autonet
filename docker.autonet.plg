@@ -8,7 +8,7 @@
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/&name;.plg">
 <!ENTITY version "2026.08.20">
-<!ENTITY md5 "ce6d3d28250e4cbfc44643d36cdda712">
+<!ENTITY md5 "492fee243bda5c10c7ce34f6966fb98d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="icon.png" min="7.2.0">
