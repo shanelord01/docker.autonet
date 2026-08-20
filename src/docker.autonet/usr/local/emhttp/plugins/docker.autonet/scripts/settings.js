@@ -22,7 +22,10 @@ $(document).ready(function () {
         const $row = $(this).closest("td");
         const $alias = $row.find(".autonet-c-alias");
         $alias.prop("disabled", !this.checked);
+        autonetUpdateDirtyIndicator();
     });
+
+    $("#autonet-containers-table").on("input", ".autonet-c-alias", autonetUpdateDirtyIndicator);
 
     $("#autonet-container-filter").on("input", function () {
         const term = $(this).val().toLowerCase();
@@ -36,14 +39,34 @@ $(document).ready(function () {
 
     $("#autonet-add-row").on("click", function () {
         $("#autonet-mappings-table tbody").append(
-            '<tr><td><input type="text" name="mapping_key[]" placeholder="com.pangolin.autonet"></td>' +
+            '<tr><td><input type="text" class="autonet-mapping-key" name="mapping_key[]" placeholder="com.pangolin.autonet"></td>' +
             '<td><input type="text" name="mapping_network[]" placeholder="pangolin"></td>' +
-            '<td><button type="button" class="autonet-remove-row">Remove</button></td></tr>'
+            '<td><code class="autonet-mapping-preview">=true</code></td>' +
+            '<td><button type="button" class="autonet-remove-row"><i class="fa fa-trash"></i></button></td></tr>'
         );
     });
 
     $("#autonet-mappings-table").on("click", ".autonet-remove-row", function () {
         $(this).closest("tr").remove();
+    });
+
+    function autonetBareLabelKey($input) {
+        const raw = $input.val() || $input.attr("placeholder") || "";
+        return raw.split("=")[0].trim();
+    }
+
+    $("#autonet-mappings-table").on("input", ".autonet-mapping-key", function () {
+        const $preview = $(this).closest("tr").find(".autonet-mapping-preview");
+        $preview.text(autonetBareLabelKey($(this)) + "=true");
+    });
+
+    $("#autonet-mappings-table").on("blur", ".autonet-mapping-key", function () {
+        // Typing "key=true" (or any "key=value") into the key field itself
+        // would otherwise get "=true" appended again on top of that - keep
+        // only the part before the "=", matching what's actually saved.
+        if ($(this).val().includes("=")) {
+            $(this).val(autonetBareLabelKey($(this)));
+        }
     });
 
     $("#autonet-test-now").on("click", function () {
@@ -69,7 +92,7 @@ $(document).ready(function () {
     $("#autonet-refresh-activity").on("click", autonetLoadActivity);
 });
 
-function autonetSaveContainers() {
+function autonetComputeContainerChanges() {
     const changes = [];
 
     $(".autonet-container-row").each(function () {
@@ -96,6 +119,22 @@ function autonetSaveContainers() {
         }
     });
 
+    return changes;
+}
+
+function autonetUpdateDirtyIndicator() {
+    const count = autonetComputeContainerChanges().length;
+    const $indicator = $("#autonet-containers-status");
+    if (count === 0) {
+        $indicator.removeClass("autonet-unsaved").html('<i class="fa fa-check"></i> No unsaved changes');
+    } else {
+        $indicator.addClass("autonet-unsaved").html('<i class="fa fa-pencil"></i> ' + count + " container" + (count === 1 ? "" : "s") + " with unsaved changes");
+    }
+}
+
+function autonetSaveContainers() {
+    const changes = autonetComputeContainerChanges();
+
     const $result = $("#autonet-containers-result");
     if (changes.length === 0) {
         $result.html("<p>No changes to save.</p>");
@@ -115,6 +154,17 @@ function autonetSaveContainers() {
                 $result.html("<p>No changes were needed.</p>");
                 return;
             }
+
+            changes.forEach(function (change) {
+                const $row = $(".autonet-container-row[data-container='" + change.container + "']");
+                Object.entries(change.mappings).forEach(function ([index, m]) {
+                    const $enabled = $row.find(".autonet-c-enabled[data-mapping='" + index + "']");
+                    $enabled.data("orig", m.enabled ? "1" : "0");
+                    $row.find(".autonet-c-alias[data-mapping='" + index + "']").data("orig", m.alias);
+                });
+            });
+            autonetUpdateDirtyIndicator();
+
             $result.html(
                 "<p>Updated: " + containers.join(", ") +
                 ". These containers need to be recreated for the new labels to take effect.</p>" +
@@ -134,7 +184,7 @@ function autonetLoadActivity() {
         const entries = parsed.entries || [];
         const $body = $("#autonet-activity-body");
         if (entries.length === 0) {
-            $body.html('<tr><td colspan="6">No activity recorded yet.</td></tr>');
+            $body.html('<tr><td colspan="6">No activity recorded yet. This only logs connect/disconnect actions when they actually happen, not routine checks - if every container already matches its mapping, there is nothing to show here.</td></tr>');
             return;
         }
         $body.html(entries.map(e =>

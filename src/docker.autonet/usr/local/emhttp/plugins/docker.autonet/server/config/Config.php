@@ -54,7 +54,7 @@ class Config
         $nets = $_POST["mapping_network"] ?? [];
         $mappings = [];
         foreach ($keys as $i => $key) {
-            $key = trim($key);
+            $key = self::stripLabelValue(trim($key));
             $net = trim($nets[$i] ?? "");
             if ($key !== "" && $net !== "") {
                 $mappings[] = ["key" => $key, "network" => $net];
@@ -71,6 +71,18 @@ class Config
 
         self::save($config);
         return "Settings saved.";
+    }
+
+    /**
+     * A mapping's label key is always applied with an implicit "=true" - if
+     * someone pastes or types "key=true" (or any other "=value") into the
+     * key field, keep only the part before the "=" instead of storing a
+     * key that already contains one. Without this, the key ends up baked
+     * into containers as "key=true" itself with "=true" appended again.
+     */
+    private static function stripLabelValue(string $key): string
+    {
+        return trim(explode("=", $key, 2)[0]);
     }
 
     /**

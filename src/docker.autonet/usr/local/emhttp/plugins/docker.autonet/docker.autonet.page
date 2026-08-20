@@ -13,124 +13,237 @@ Markdown="false"
     $message = Config::formSubmit();
     $config = Config::load();
     $containerRows = ContainerState::list($config);
+
+    $connectedCount = 0;
+    $pendingCount = 0;
+    $totalSlots = 0;
+    foreach ($containerRows as $row) {
+        foreach ($row["mappings"] as $m) {
+            $totalSlots++;
+            if ($m["connected"]) $connectedCount++;
+            elseif ($m["enabled"]) $pendingCount++;
+        }
+    }
+    $notConnectedCount = $totalSlots - $connectedCount - $pendingCount;
 ?>
 
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/docker.autonet/styles/styles.css")?>">
 <script defer src="<?autov('/plugins/docker.autonet/scripts/settings.js')?>"></script>
 
-<h3>Docker Autonet</h3>
-<p>Connects containers to Docker networks automatically, based on labels. Configure which label keys map to
-which networks under <b>Mappings</b>, then turn containers on or off per network under <b>Containers</b>.</p>
+<div class="autonet-header-card">
+    <img src="/plugins/docker.autonet/icon.png" class="autonet-header-icon">
+    <div class="autonet-header-body">
+        <div class="autonet-eyebrow">Docker Autonet</div>
+        <h2>Connect containers to networks automatically</h2>
+        <p>Configure which label keys map to which networks under <b>Mappings</b>, then turn containers on or off
+        per network under <b>Containers</b>. Reconciliation runs on a cron schedule and picks up any container on
+        the host, not just ones edited here.</p>
+        <div class="autonet-badges">
+            <span class="autonet-badge"><?= count($config["mappings"]) ?> mapping<?= count($config["mappings"]) == 1 ? "" : "s" ?></span>
+            <span class="autonet-badge"><?= count($containerRows) ?> container<?= count($containerRows) == 1 ? "" : "s" ?> on host</span>
+            <span class="autonet-badge autonet-badge-connected"><?= $connectedCount ?> connected</span>
+            <? if ($pendingCount > 0): ?>
+            <span class="autonet-badge autonet-badge-pending"><?= $pendingCount ?> pending recreate</span>
+            <? endif; ?>
+        </div>
+    </div>
+    <div class="autonet-header-actions">
+        <button type="button" id="autonet-test-now"><i class="fa fa-flask"></i> Test now</button>
+    </div>
+</div>
 
 <? if ($message): ?>
-<p class="autonet-message"><?= htmlspecialchars($message) ?></p>
+<p class="autonet-message"><i class="fa fa-check"></i> <?= htmlspecialchars($message) ?></p>
 <? endif; ?>
 
 <div class="autonet-tabs">
-    <button type="button" class="autonet-tab-button autonet-tab-active" data-tab="basic">Mappings</button>
-    <button type="button" class="autonet-tab-button" data-tab="containers">Containers</button>
-    <button type="button" class="autonet-tab-button" data-tab="advanced">Advanced</button>
-    <button type="button" class="autonet-tab-button" data-tab="activity">Activity</button>
+    <button type="button" class="autonet-tab-button autonet-tab-active" data-tab="basic"><i class="fa fa-link"></i> Mappings</button>
+    <button type="button" class="autonet-tab-button" data-tab="containers"><i class="fa fa-server"></i> Containers</button>
+    <button type="button" class="autonet-tab-button" data-tab="advanced"><i class="fa fa-cog"></i> Advanced</button>
+    <button type="button" class="autonet-tab-button" data-tab="activity"><i class="fa fa-history"></i> Activity</button>
 </div>
 
-<form method="post" action="">
 <div id="autonet-tab-basic" class="autonet-tab-panel autonet-tab-active">
-    <table id="autonet-mappings-table" class="autonet-table">
-        <thead>
-            <tr><th>Label key</th><th>Network</th><th></th></tr>
-        </thead>
-        <tbody>
-            <? foreach ($config["mappings"] as $mapping): ?>
-            <tr>
-                <td><input type="text" name="mapping_key[]" value="<?= htmlspecialchars($mapping["key"]) ?>" placeholder="com.pangolin.autonet"></td>
-                <td><input type="text" name="mapping_network[]" value="<?= htmlspecialchars($mapping["network"]) ?>" placeholder="pangolin"></td>
-                <td><button type="button" class="autonet-remove-row">Remove</button></td>
-            </tr>
-            <? endforeach; ?>
-        </tbody>
-    </table>
-    <button type="button" id="autonet-add-row">Add mapping</button>
-    <p>A container carrying <code>&lt;label key&gt;=true</code> is connected to <code>&lt;network&gt;</code> on the next reconcile pass.</p>
+    <div class="autonet-section">
+        <div class="autonet-section-header">
+            <div class="autonet-eyebrow">Core section</div>
+            <h3>Mappings</h3>
+            <p>A container carrying <code>&lt;label key&gt;=true</code> is connected to <code>&lt;network&gt;</code> on the next reconcile pass.</p>
+        </div>
+        <form method="post" action="">
+        <div class="autonet-subsection">
+            <div class="autonet-subsection-header">
+                <span class="autonet-eyebrow">Label to network mappings</span>
+            </div>
+            <table id="autonet-mappings-table" class="autonet-table">
+                <thead>
+                    <tr><th>Label key</th><th>Network</th><th>Full label containers need</th><th></th></tr>
+                </thead>
+                <tbody>
+                    <? foreach ($config["mappings"] as $mapping): ?>
+                    <tr>
+                        <td><input type="text" class="autonet-mapping-key" name="mapping_key[]" value="<?= htmlspecialchars($mapping["key"]) ?>" placeholder="com.pangolin.autonet"></td>
+                        <td><input type="text" name="mapping_network[]" value="<?= htmlspecialchars($mapping["network"]) ?>" placeholder="pangolin"></td>
+                        <td><code class="autonet-mapping-preview"><?= htmlspecialchars($mapping["key"]) ?>=true</code></td>
+                        <td><button type="button" class="autonet-remove-row"><i class="fa fa-trash"></i></button></td>
+                    </tr>
+                    <? endforeach; ?>
+                </tbody>
+            </table>
+            <p class="autonet-field-hint">The value must be exactly <code>true</code> - <b>Containers</b> sets this for you with a toggle, so you never need to type it by hand.</p>
+            <button type="button" id="autonet-add-row"><i class="fa fa-plus"></i> Add mapping</button>
+        </div>
+        <div class="autonet-actions">
+            <button type="submit"><i class="fa fa-save"></i> Save settings</button>
+        </div>
+        </form>
+    </div>
 </div>
 
 <div id="autonet-tab-advanced" class="autonet-tab-panel">
-    <label for="alias_label">Alias label key</label>
-    <input type="text" id="alias_label" name="alias_label" value="<?= htmlspecialchars($config["alias_label"]) ?>">
-    <p>The value of this label becomes the container's DNS alias on the network. Falls back to the container name.</p>
+    <div class="autonet-section">
+        <div class="autonet-section-header">
+            <div class="autonet-eyebrow">Core section</div>
+            <h3>Advanced</h3>
+            <p>Reconciliation runs on a cron schedule, not a live event stream - the rescan interval is a floor, not a guarantee.</p>
+        </div>
+        <form method="post" action="">
+        <div class="autonet-subsection">
+            <div class="autonet-subsection-header">
+                <span class="autonet-eyebrow">Options</span>
+            </div>
+            <label for="alias_label">Alias label key</label>
+            <input type="text" id="alias_label" name="alias_label" value="<?= htmlspecialchars($config["alias_label"]) ?>">
+            <p class="autonet-field-hint">The value of this label becomes the container's DNS alias on the network. Falls back to the container name.</p>
 
-    <label><input type="checkbox" name="auto_disconnect" <?= $config["auto_disconnect"] ? "checked" : "" ?>> Auto-disconnect when a label is removed or set to false</label>
+            <label class="autonet-toggle-row">
+                <span class="autonet-switch"><input type="checkbox" name="auto_disconnect" <?= $config["auto_disconnect"] ? "checked" : "" ?>><span class="autonet-slider"></span></span>
+                Auto-disconnect when a label is removed or set to false
+            </label>
 
-    <label for="rescan_seconds">Rescan interval (seconds)</label>
-    <input type="number" id="rescan_seconds" name="rescan_seconds" min="60" step="1" value="<?= (int)$config["rescan_seconds"] ?>">
-    <p>Minimum 60 - reconciliation runs on a cron schedule, not a live event stream.</p>
+            <label for="rescan_seconds">Rescan interval (seconds)</label>
+            <input type="number" id="rescan_seconds" name="rescan_seconds" min="60" step="1" value="<?= (int)$config["rescan_seconds"] ?>">
+            <p class="autonet-field-hint">Minimum 60.</p>
 
-    <label><input type="checkbox" name="debug" <?= $config["debug"] ? "checked" : "" ?>> Debug logging</label>
+            <label class="autonet-toggle-row">
+                <span class="autonet-switch"><input type="checkbox" name="debug" <?= $config["debug"] ? "checked" : "" ?>><span class="autonet-slider"></span></span>
+                Debug logging
+            </label>
+        </div>
+        <div class="autonet-actions">
+            <button type="submit"><i class="fa fa-save"></i> Save settings</button>
+        </div>
+        </form>
+    </div>
 </div>
 
 <div id="autonet-tab-activity" class="autonet-tab-panel">
-    <button type="button" id="autonet-refresh-activity">Refresh</button>
-    <table id="autonet-activity-table" class="autonet-table">
-        <thead>
-            <tr><th>Time</th><th>Action</th><th>Container</th><th>Network</th><th>Alias</th><th>Result</th></tr>
-        </thead>
-        <tbody id="autonet-activity-body"></tbody>
-    </table>
+    <div class="autonet-section">
+        <div class="autonet-section-header">
+            <div class="autonet-eyebrow">Core section</div>
+            <h3>Activity</h3>
+            <p>Connect and disconnect actions taken by the last several reconcile passes.</p>
+        </div>
+        <div class="autonet-subsection">
+            <div class="autonet-subsection-header">
+                <span class="autonet-eyebrow">Recent actions</span>
+                <button type="button" id="autonet-refresh-activity"><i class="fa fa-refresh"></i> Refresh</button>
+            </div>
+            <table id="autonet-activity-table" class="autonet-table">
+                <thead>
+                    <tr><th>Time</th><th>Action</th><th>Container</th><th>Network</th><th>Alias</th><th>Result</th></tr>
+                </thead>
+                <tbody id="autonet-activity-body"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
-
-<div class="autonet-actions">
-    <button type="button" id="autonet-test-now">Test now</button>
-    <button type="submit">Save settings</button>
-</div>
-</form>
 
 <div id="autonet-test-results"></div>
 
 <div id="autonet-tab-containers" class="autonet-tab-panel">
-    <? if (empty($config["mappings"])): ?>
-    <p>Add a mapping under the Mappings tab first.</p>
-    <? else: ?>
-    <input type="text" id="autonet-container-filter" placeholder="Filter containers...">
-    <table id="autonet-containers-table" class="autonet-table">
-        <thead>
-            <tr>
-                <th>Container</th>
-                <? foreach ($config["mappings"] as $mapping): ?>
-                <th><?= htmlspecialchars($mapping["network"]) ?></th>
-                <? endforeach; ?>
-            </tr>
-        </thead>
-        <tbody>
-            <? foreach ($containerRows as $row): ?>
-            <tr class="autonet-container-row" data-container="<?= htmlspecialchars($row["name"]) ?>">
-                <td>
-                    <?= htmlspecialchars($row["name"]) ?>
-                    <? if (!$row["has_template"]): ?>
-                    <div class="autonet-hint">Not managed by Docker Manager - edit its compose file directly.</div>
-                    <? endif; ?>
-                </td>
-                <? foreach ($row["mappings"] as $index => $m): ?>
-                <td>
-                    <label class="autonet-toggle">
-                        <input type="checkbox" class="autonet-c-enabled" data-mapping="<?= $index ?>"
-                            data-orig="<?= $m["enabled"] ? "1" : "0" ?>"
-                            <?= $m["enabled"] ? "checked" : "" ?> <?= $row["has_template"] ? "" : "disabled" ?>>
-                        Connect
-                    </label>
-                    <input type="text" class="autonet-c-alias" data-mapping="<?= $index ?>"
-                        data-orig="<?= htmlspecialchars($m["alias"]) ?>"
-                        value="<?= htmlspecialchars($m["alias"]) ?>" placeholder="<?= htmlspecialchars($row["name"]) ?>"
-                        <?= ($row["has_template"] && $m["enabled"]) ? "" : "disabled" ?>>
-                    <span class="autonet-dot <?= $m["connected"] ? "autonet-dot-connected" : "autonet-dot-pending" ?>"></span>
-                    <span class="autonet-status-text"><?= $m["connected"] ? "connected" : "not connected" ?></span>
-                </td>
-                <? endforeach; ?>
-            </tr>
-            <? endforeach; ?>
-        </tbody>
-    </table>
-    <div class="autonet-actions">
-        <button type="button" id="autonet-save-containers">Save changes</button>
+    <div class="autonet-section">
+        <div class="autonet-section-header">
+            <div class="autonet-eyebrow">Core section</div>
+            <h3>Containers</h3>
+            <p>Turn a container's network connection on or off. Saving always writes the trigger label and alias
+            together, so a container can't end up half-configured.</p>
+        </div>
+        <? if (empty($config["mappings"])): ?>
+        <div class="autonet-subsection">
+            <p>Add a mapping under the Mappings tab first.</p>
+        </div>
+        <? else: ?>
+        <div class="autonet-subsection">
+            <div class="autonet-subsection-header">
+                <span class="autonet-eyebrow">Container manager</span>
+                <span class="autonet-subsection-hint">Search and filter, then toggle connections below.</span>
+            </div>
+            <input type="text" id="autonet-container-filter" placeholder="Search containers by name...">
+            <div class="autonet-pills">
+                <span class="autonet-badge autonet-badge-connected"><?= $connectedCount ?> connected</span>
+                <span class="autonet-badge"><?= $notConnectedCount ?> not connected</span>
+                <? if ($pendingCount > 0): ?>
+                <span class="autonet-badge autonet-badge-pending"><?= $pendingCount ?> pending recreate</span>
+                <? endif; ?>
+            </div>
+
+            <table id="autonet-containers-table" class="autonet-table">
+                <thead>
+                    <tr>
+                        <th>Container</th>
+                        <? foreach ($config["mappings"] as $mapping): ?>
+                        <th><?= htmlspecialchars($mapping["network"]) ?></th>
+                        <? endforeach; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <? foreach ($containerRows as $row): ?>
+                    <tr class="autonet-container-row" data-container="<?= htmlspecialchars($row["name"]) ?>">
+                        <td>
+                            <div class="autonet-container-name">
+                                <? if ($row["icon"]): ?>
+                                <img src="<?= htmlspecialchars($row["icon"]) ?>" class="autonet-container-icon" onerror="this.style.visibility='hidden'">
+                                <? else: ?>
+                                <i class="fa fa-cube autonet-container-icon-fallback"></i>
+                                <? endif; ?>
+                                <div>
+                                    <?= htmlspecialchars($row["name"]) ?>
+                                    <? if (!$row["has_template"]): ?>
+                                    <div class="autonet-hint">Not managed by Docker Manager - edit its compose file directly.</div>
+                                    <? endif; ?>
+                                </div>
+                            </div>
+                        </td>
+                        <? foreach ($row["mappings"] as $index => $m): ?>
+                        <td>
+                            <div class="autonet-cell-flex">
+                                <span class="autonet-switch">
+                                    <input type="checkbox" class="autonet-c-enabled" data-mapping="<?= $index ?>"
+                                        data-orig="<?= $m["enabled"] ? "1" : "0" ?>"
+                                        <?= $m["enabled"] ? "checked" : "" ?> <?= $row["has_template"] ? "" : "disabled" ?>>
+                                    <span class="autonet-slider"></span>
+                                </span>
+                                <input type="text" class="autonet-c-alias" data-mapping="<?= $index ?>"
+                                    data-orig="<?= htmlspecialchars($m["alias"]) ?>"
+                                    value="<?= htmlspecialchars($m["alias"]) ?>" placeholder="<?= htmlspecialchars($row["name"]) ?>"
+                                    <?= ($row["has_template"] && $m["enabled"]) ? "" : "disabled" ?>>
+                                <span class="autonet-dot <?= $m["connected"] ? "autonet-dot-connected" : "autonet-dot-pending" ?>"></span>
+                                <span class="autonet-status-text"><?= $m["connected"] ? "connected" : "not connected" ?></span>
+                            </div>
+                        </td>
+                        <? endforeach; ?>
+                    </tr>
+                    <? endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="autonet-sticky-bar">
+            <span id="autonet-containers-status" class="autonet-saved-indicator"><i class="fa fa-check"></i> No unsaved changes</span>
+            <button type="button" id="autonet-save-containers"><i class="fa fa-save"></i> Save changes</button>
+        </div>
+        <div id="autonet-containers-result"></div>
+        <? endif; ?>
     </div>
-    <div id="autonet-containers-result"></div>
-    <? endif; ?>
 </div>

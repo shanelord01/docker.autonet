@@ -60,6 +60,7 @@ class ContainerState
 
             $rows[] = [
                 "name" => $name,
+                "icon" => $labels["net.unraid.docker.icon"] ?? "",
                 "has_template" => in_array(strtolower($name), $templatedNames, true),
                 "mappings" => $mappings,
             ];

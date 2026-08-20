@@ -1,38 +1,214 @@
 /* Settings page */
 
+:root {
+    --autonet-accent: #ff8c2f;
+    --autonet-border: rgba(255, 255, 255, 0.1);
+    --autonet-card-bg: rgba(255, 255, 255, 0.03);
+    --autonet-subtle-text: rgba(255, 255, 255, 0.55);
+    --autonet-green: #4caf50;
+    --autonet-amber: #e9a23b;
+}
+
 .autonet-message {
-    color: #4caf50;
+    color: var(--autonet-green);
     font-weight: bold;
 }
 
+/* Header card */
+
+.autonet-header-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px;
+    margin-bottom: 14px;
+    background: var(--autonet-card-bg);
+    border: 1px solid var(--autonet-border);
+    border-radius: 8px;
+}
+
+.autonet-header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    flex: 0 0 44px;
+}
+
+.autonet-header-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.autonet-header-body h2 {
+    margin: 2px 0 6px;
+    font-size: 1.25rem;
+}
+
+.autonet-header-body p {
+    margin: 0 0 10px;
+    color: var(--autonet-subtle-text);
+    font-size: 0.9rem;
+    max-width: 780px;
+}
+
+.autonet-header-actions {
+    flex: 0 0 auto;
+}
+
+.autonet-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--autonet-accent);
+}
+
+/* Badges */
+
+.autonet-badges,
+.autonet-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.autonet-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.78rem;
+    color: var(--autonet-subtle-text);
+}
+
+.autonet-badge-connected {
+    background: rgba(76, 175, 80, 0.15);
+    color: var(--autonet-green);
+}
+
+.autonet-badge-pending {
+    background: rgba(233, 162, 59, 0.15);
+    color: var(--autonet-amber);
+}
+
+/* Tabs, as icon pills */
+
 .autonet-tabs {
     display: flex;
-    gap: 4px;
-    margin: 10px 0;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 14px;
 }
 
 .autonet-tab-button {
-    padding: 8px 16px;
-    border: none;
-    background: none;
+    padding: 8px 14px;
+    border: 1px solid var(--autonet-border);
+    border-radius: 6px;
+    background: var(--autonet-card-bg);
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 0.75;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.autonet-tab-button i {
+    color: var(--autonet-accent);
 }
 
 .autonet-tab-button.autonet-tab-active {
     opacity: 1;
-    border-bottom: 2px solid #ff8c2f;
+    border-color: var(--autonet-accent);
 }
 
 .autonet-tab-panel {
     display: none;
-    padding: 10px 0;
 }
 
 .autonet-tab-panel.autonet-tab-active {
     display: block;
 }
+
+/* Section / subsection cards */
+
+.autonet-section {
+    background: var(--autonet-card-bg);
+    border: 1px solid var(--autonet-border);
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 14px;
+}
+
+.autonet-section-header {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--autonet-border);
+}
+
+.autonet-section-header h3 {
+    margin: 2px 0 6px;
+}
+
+.autonet-section-header p {
+    margin: 0;
+    color: var(--autonet-subtle-text);
+    font-size: 0.85rem;
+}
+
+.autonet-subsection {
+    border: 1px solid var(--autonet-border);
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 14px;
+}
+
+.autonet-subsection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.autonet-subsection-hint {
+    font-size: 0.8rem;
+    color: var(--autonet-subtle-text);
+}
+
+.autonet-section > label,
+.autonet-subsection > label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 4px;
+}
+
+.autonet-section > label:first-child,
+.autonet-subsection > label:first-child {
+    margin-top: 0;
+}
+
+.autonet-section > input[type="text"],
+.autonet-section > input[type="number"],
+.autonet-subsection > input[type="text"],
+.autonet-subsection > input[type="number"] {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.autonet-field-hint {
+    margin: 0 0 4px;
+    color: var(--autonet-subtle-text);
+    font-size: 0.8rem;
+}
+
+.autonet-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px !important;
+}
+
+/* Tables */
 
 .autonet-table {
     width: 100%;
@@ -43,26 +219,15 @@
 .autonet-table th,
 .autonet-table td {
     text-align: left;
-    padding: 6px 8px;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+    padding: 8px;
+    border-bottom: 1px solid var(--autonet-border);
 }
 
-.autonet-tab-panel > label {
-    display: block;
-    margin-top: 14px;
-    margin-bottom: 4px;
-}
-
-.autonet-tab-panel > input[type="text"],
-.autonet-tab-panel > input[type="number"] {
-    display: block;
-    margin-bottom: 4px;
-}
-
-.autonet-tab-panel > p {
-    margin-top: 0;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.85rem;
+.autonet-table th {
+    color: var(--autonet-subtle-text);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .autonet-actions {
@@ -75,6 +240,8 @@
     margin-top: 10px;
 }
 
+/* Containers table */
+
 #autonet-container-filter {
     width: 100%;
     max-width: 400px;
@@ -82,22 +249,40 @@
     display: block;
 }
 
+.autonet-container-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.autonet-container-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    object-fit: contain;
+    flex: 0 0 24px;
+}
+
+.autonet-container-icon-fallback {
+    width: 24px;
+    flex: 0 0 24px;
+    text-align: center;
+    color: var(--autonet-subtle-text);
+}
+
 #autonet-containers-table td {
     vertical-align: middle;
 }
 
-#autonet-containers-table td:not(:first-child) {
+.autonet-cell-flex {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 8px;
 }
 
-.autonet-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    flex: 0 0 auto;
+.autonet-mapping-preview {
+    color: var(--autonet-subtle-text);
 }
 
 .autonet-c-alias {
@@ -111,15 +296,89 @@
 
 .autonet-status-text {
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--autonet-subtle-text);
 }
 
 .autonet-hint {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--autonet-subtle-text);
     font-style: italic;
 }
 
 #autonet-containers-result {
     margin-top: 10px;
+}
+
+/* Toggle switches */
+
+.autonet-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+    flex: 0 0 38px;
+}
+
+.autonet-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.autonet-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    transition: background 0.15s;
+}
+
+.autonet-slider::before {
+    content: "";
+    position: absolute;
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.15s;
+}
+
+.autonet-switch input:checked + .autonet-slider {
+    background: var(--autonet-accent);
+}
+
+.autonet-switch input:checked + .autonet-slider::before {
+    transform: translateX(18px);
+}
+
+.autonet-switch input:disabled + .autonet-slider {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* Sticky save bar */
+
+.autonet-sticky-bar {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(20, 20, 20, 0.95);
+    border: 1px solid var(--autonet-border);
+    border-radius: 6px;
+}
+
+.autonet-saved-indicator {
+    color: var(--autonet-green);
+    font-size: 0.85rem;
+}
+
+.autonet-saved-indicator.autonet-unsaved {
+    color: var(--autonet-amber);
 }
