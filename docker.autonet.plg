@@ -7,7 +7,7 @@
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/&name;.plg">
 <!ENTITY version "2026.08.20">
-<!ENTITY md5 "d8c3601515e72b194b047a85811c2b4f">
+<!ENTITY md5 "53c12e618f92b27683d7eca794fc9f06">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="7.2.0">
@@ -30,7 +30,7 @@
             rm -f $(ls /boot/config/plugins/&name;/&name;*.txz | grep -v '&version;')
             echo "&version;"> /boot/config/plugins/&name;/version
 
-            CRON_CMD="/usr/bin/php &plugdir;/server/service/RunReconcile.php > /dev/null 2>&1"
+            CRON_CMD="/usr/bin/php &plugdir;/server/service/RunReconcile.php > /dev/null 2>&amp;1"
             echo "* * * * * root $CRON_CMD" > /etc/cron.d/&name;
             GO_LINE="echo '* * * * * root $CRON_CMD' > /etc/cron.d/&name;"
             grep -qF "$GO_LINE" /boot/config/go 2>/dev/null || echo "$GO_LINE" >> /boot/config/go
