@@ -191,9 +191,16 @@ Markdown="false"
             <table id="autonet-containers-table" class="autonet-table">
                 <thead>
                     <tr>
-                        <th>Container</th>
+                        <th rowspan="2">Container</th>
                         <? foreach ($config["mappings"] as $mapping): ?>
-                        <th><?= htmlspecialchars($mapping["network"]) ?></th>
+                        <th colspan="3" class="autonet-network-header"><?= htmlspecialchars($mapping["network"]) ?></th>
+                        <? endforeach; ?>
+                    </tr>
+                    <tr>
+                        <? foreach ($config["mappings"] as $mapping): ?>
+                        <th class="autonet-subheader">Connect</th>
+                        <th class="autonet-subheader">Alias</th>
+                        <th class="autonet-subheader">Status</th>
                         <? endforeach; ?>
                     </tr>
                 </thead>
@@ -217,20 +224,22 @@ Markdown="false"
                         </td>
                         <? foreach ($row["mappings"] as $index => $m): ?>
                         <td>
-                            <div class="autonet-cell-flex">
-                                <span class="autonet-switch">
-                                    <input type="checkbox" class="autonet-c-enabled" data-mapping="<?= $index ?>"
-                                        data-orig="<?= $m["enabled"] ? "1" : "0" ?>"
-                                        <?= $m["enabled"] ? "checked" : "" ?> <?= $row["has_template"] ? "" : "disabled" ?>>
-                                    <span class="autonet-slider"></span>
-                                </span>
-                                <input type="text" class="autonet-c-alias" data-mapping="<?= $index ?>"
-                                    data-orig="<?= htmlspecialchars($m["alias"]) ?>"
-                                    value="<?= htmlspecialchars($m["alias"]) ?>" placeholder="<?= htmlspecialchars($row["name"]) ?>"
-                                    <?= ($row["has_template"] && $m["enabled"]) ? "" : "disabled" ?>>
-                                <span class="autonet-dot <?= $m["connected"] ? "autonet-dot-connected" : "autonet-dot-pending" ?>"></span>
-                                <span class="autonet-status-text"><?= $m["connected"] ? "connected" : "not connected" ?></span>
-                            </div>
+                            <span class="autonet-switch">
+                                <input type="checkbox" class="autonet-c-enabled" data-mapping="<?= $index ?>"
+                                    data-orig="<?= $m["enabled"] ? "1" : "0" ?>"
+                                    <?= $m["enabled"] ? "checked" : "" ?> <?= $row["has_template"] ? "" : "disabled" ?>>
+                                <span class="autonet-slider"></span>
+                            </span>
+                        </td>
+                        <td>
+                            <input type="text" class="autonet-c-alias" data-mapping="<?= $index ?>"
+                                data-orig="<?= htmlspecialchars($m["alias"]) ?>"
+                                value="<?= htmlspecialchars($m["alias"]) ?>" placeholder="<?= htmlspecialchars($row["name"]) ?>"
+                                <?= ($row["has_template"] && $m["enabled"]) ? "" : "disabled" ?>>
+                        </td>
+                        <td>
+                            <span class="autonet-dot <?= $m["connected"] ? "autonet-dot-connected" : "autonet-dot-pending" ?>"></span>
+                            <span class="autonet-status-text"><?= $m["connected"] ? "connected" : "not connected" ?></span>
                         </td>
                         <? endforeach; ?>
                     </tr>

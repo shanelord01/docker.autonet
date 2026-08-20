@@ -14,9 +14,9 @@ class Config
         "mappings" => [
             ["key" => "com.pangolin.autonet", "network" => "pangolin"],
         ],
-        "alias_label" => "com.pangolin.autonet.alias",
+        "alias_label" => "com.autonet.alias",
         "auto_disconnect" => true,
-        "rescan_seconds" => 30,
+        "rescan_seconds" => 60,
         "debug" => false,
     ];
 

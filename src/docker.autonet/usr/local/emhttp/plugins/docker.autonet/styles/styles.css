@@ -274,11 +274,23 @@
     vertical-align: middle;
 }
 
-.autonet-cell-flex {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
+.autonet-network-header {
+    text-align: center;
+    border-left: 1px solid var(--autonet-border);
+}
+
+.autonet-subheader {
+    text-align: center;
+    border-left: 1px solid var(--autonet-border);
+    font-size: 0.72rem !important;
+}
+
+#autonet-containers-table td:not(:first-child) {
+    text-align: center;
+}
+
+#autonet-containers-table td:nth-child(3n+2) {
+    border-left: 1px solid var(--autonet-border);
 }
 
 .autonet-mapping-preview {
@@ -287,7 +299,6 @@
 
 .autonet-c-alias {
     width: 140px !important;
-    flex: 0 0 140px;
 }
 
 .autonet-c-alias:disabled {

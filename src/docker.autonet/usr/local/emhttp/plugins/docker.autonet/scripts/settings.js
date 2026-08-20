@@ -19,9 +19,7 @@ $(document).ready(function () {
     }
 
     $(".autonet-c-enabled").on("change", function () {
-        const $row = $(this).closest("td");
-        const $alias = $row.find(".autonet-c-alias");
-        $alias.prop("disabled", !this.checked);
+        autonetFindAlias($(this)).prop("disabled", !this.checked);
         autonetUpdateDirtyIndicator();
     });
 
@@ -92,6 +90,11 @@ $(document).ready(function () {
     $("#autonet-refresh-activity").on("click", autonetLoadActivity);
 });
 
+function autonetFindAlias($checkbox) {
+    const index = $checkbox.data("mapping");
+    return $checkbox.closest("tr").find(".autonet-c-alias[data-mapping='" + index + "']");
+}
+
 function autonetComputeContainerChanges() {
     const changes = [];
 
@@ -104,7 +107,7 @@ function autonetComputeContainerChanges() {
             const index = $(this).data("mapping");
             const enabled = this.checked;
             const origEnabled = $(this).data("orig") == "1";
-            const $alias = $(this).closest("td").find(".autonet-c-alias");
+            const $alias = autonetFindAlias($(this));
             const alias = $alias.val().trim();
             const origAlias = String($alias.data("orig") ?? "");
 
