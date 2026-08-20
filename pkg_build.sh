@@ -3,14 +3,19 @@
 plugin_name="docker.autonet"
 CWD=$(pwd)
 tmpdir="$CWD/tmp/tmp.$(($RANDOM * 19318203981230 + 40))"
-version=$(date +"%Y.%m.%d")
-filename="$CWD/archive/$plugin_name-$version.txz"
-rm -f "$filename"
-dayversion=$(ls "$CWD"/archive/$plugin_name-"$version"*.txz 2>/dev/null | wc -l)
+base_version=$(date +"%Y.%m.%d")
 
-if [ "$dayversion" -gt 0 ]; then
-    filename=$CWD/archive/$plugin_name-$version.$dayversion.txz
+# Count same-day archives before creating anything, and fold that count into
+# the version itself (not just the archive filename) - a same-day rebuild
+# must get a version/URL the CDN has never cached before, or an install can
+# fetch a stale .plg paired with a different .txz and fail an MD5 check.
+existing=$(ls "$CWD"/archive/$plugin_name-"$base_version"*.txz 2>/dev/null | wc -l)
+if [ "$existing" -gt 0 ]; then
+    version="$base_version.$existing"
+else
+    version="$base_version"
 fi
+filename="$CWD/archive/$plugin_name-$version.txz"
 mkdir -p "$tmpdir"
 
 rsync -av --progress src/$plugin_name/ "$tmpdir" --exclude .git --exclude tmp --exclude .env --exclude archive
