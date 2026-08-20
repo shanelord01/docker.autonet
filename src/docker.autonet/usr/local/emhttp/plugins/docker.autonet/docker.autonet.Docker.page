@@ -1,0 +1,19 @@
+Menu="Docker"
+Icon="server"
+---
+
+<?
+    $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
+    require_once("$documentRoot/plugins/docker.autonet/server/config/Config.php");
+    use DockerAutonet\Config\Config;
+    $autonetSuggestions = Config::suggestedLabelKeys();
+?>
+
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/docker.autonet/styles/choices.min.css")?>">
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/docker.autonet/styles/styles.css")?>">
+
+<script defer src="<?autov('/plugins/docker.autonet/scripts/choices.min.js')?>"></script>
+<script defer src="<?autov('/plugins/docker.autonet/scripts/dropdown.js')?>"></script>
+<script defer src="<?autov('/plugins/docker.autonet/scripts/docker.js')?>"></script>
+
+<script>const autonetDefaultLabels = <? echo json_encode($autonetSuggestions);?></script>

@@ -1,0 +1,59 @@
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE PLUGIN [
+    <!ENTITY name "docker.autonet">
+<!ENTITY author "shanelord01">
+<!ENTITY github "&author;/&name;">
+<!ENTITY launch "Settings/Autonet">
+<!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/&name;.plg">
+<!ENTITY version "2026.08.20">
+<!ENTITY md5 "00000000000000000000000000000000">
+]>
+
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="7.2.0">
+    <CHANGES>
+###2026.08.20
+- Initial release. Combines docker.labelInjector's label-editing UI and pangolin-autonet-watcher's
+  reconciliation logic into one plugin - no separate watcher container to run or maintain.
+    </CHANGES>
+
+    <!-- New source file -->
+    <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
+        <URL>https://raw.github.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <MD5>&md5;</MD5>
+    </FILE>
+
+    <!-- Post install -->
+    <FILE Run="/bin/bash">
+        <INLINE>
+            mkdir -p /boot/config/plugins/&name;
+            rm -f $(ls /boot/config/plugins/&name;/&name;*.txz | grep -v '&version;')
+            echo "&version;"> /boot/config/plugins/&name;/version
+
+            CRON_CMD="/usr/bin/php &plugdir;/server/service/RunReconcile.php > /dev/null 2>&1"
+            echo "* * * * * root $CRON_CMD" > /etc/cron.d/&name;
+            GO_LINE="echo '* * * * * root $CRON_CMD' > /etc/cron.d/&name;"
+            grep -qF "$GO_LINE" /boot/config/go 2>/dev/null || echo "$GO_LINE" >> /boot/config/go
+
+            echo ""
+            echo "----------------------------------------------------"
+            echo " &name; has been installed."
+            echo " Version: &version;"
+            echo " Configure label -> network mappings under Settings -> Docker Autonet."
+            echo "----------------------------------------------------"
+            echo ""
+        </INLINE>
+    </FILE>
+
+    <!-- Remove the plugin -->
+    <FILE Run="/bin/bash" Method="remove">
+        <INLINE>
+            removepkg &name;-&version;
+            rm -f /etc/cron.d/&name;
+            sed -i "\#/etc/cron.d/&name;#d" /boot/config/go 2>/dev/null
+            rm -rf &plugdir;
+            rm -rf /boot/config/plugins/&name;
+        </INLINE>
+    </FILE>
+
+</PLUGIN>

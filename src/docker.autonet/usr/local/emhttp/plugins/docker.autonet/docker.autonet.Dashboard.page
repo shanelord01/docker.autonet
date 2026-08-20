@@ -1,0 +1,67 @@
+Menu="Dashboard"
+Icon="icon.png"
+---
+<?php
+$plugin = "docker.autonet";
+$icon_file = "/plugins/docker.autonet/icon.png";
+$poll_interval = 15000;
+?>
+
+<style>
+    .autonet-network-row { margin-bottom: 10px; }
+    .autonet-network-name { font-weight: bold; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 4px; }
+    .autonet-row { display: flex; align-items: center; padding: 3px 0; }
+    .autonet-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; flex: 0 0 8px; }
+    .autonet-dot-connected { background: #4caf50; }
+    .autonet-dot-pending { background: #ff9800; }
+    .autonet-container { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .autonet-alias { color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-left: 8px; }
+    .autonet-empty { font-style: italic; color: rgba(255,255,255,0.5); padding: 4px 0; }
+</style>
+
+<?php
+$mytiles[$plugin]['column1'] = <<<EOT
+<tbody class="sortable" title="Docker Autonet">
+  <tr>
+    <td>
+      <div class='tile-header' id='{$plugin}-dashboard-card'>
+        <div class='tile-header-left'>
+          <img src="{$icon_file}" class="icon">
+          <div class='section'>
+            <h3 class='tile-header-main' id='{$plugin}-dashboard-title'>Docker Autonet</h3>
+          </div>
+        </div>
+        <div class='tile-header-right'>
+          <div class='tile-header-right-controls'>
+            <a id="{$plugin}-settings-button" href="/Settings/Autonet" title="_(Settings)_">
+              <i class="fa fa-fw fa-cog control"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td>
+        <div id="autonet_widget">
+            <p align="center" style="font-style:italic;padding-top:10px;">Retrieving data...</p>
+        </div>
+    </td>
+  </tr>
+</tbody>
+EOT;
+?>
+
+<script>
+    function updateAutonetDashboard() {
+        $.get("/plugins/docker.autonet/server/service/Widget.php", function (data) {
+            if (data !== undefined) {
+                $("#autonet_widget").html(data);
+            }
+        });
+    }
+    $(function () {
+        updateAutonetDashboard();
+        setInterval(updateAutonetDashboard, <?= $poll_interval; ?>);
+    });
+</script>

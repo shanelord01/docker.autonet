@@ -1,0 +1,83 @@
+Menu="Utilities"
+Title="docker.autonet"
+Icon="icon.png"
+Markdown="false"
+---
+<?
+    $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
+    require_once("$documentRoot/plugins/docker.autonet/server/config/Config.php");
+    use DockerAutonet\Config\Config;
+
+    $message = Config::formSubmit();
+    $config = Config::load();
+?>
+
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/docker.autonet/styles/styles.css")?>">
+<script defer src="<?autov('/plugins/docker.autonet/scripts/settings.js')?>"></script>
+
+<h3>Docker Autonet</h3>
+<p>Connects containers to Docker networks automatically, based on labels. Configure which label keys map to
+which networks below, then use <b>Add Labels</b> on the Docker page to tag containers, or set the labels
+directly in a template or compose file.</p>
+
+<? if ($message): ?>
+<p class="autonet-message"><?= htmlspecialchars($message) ?></p>
+<? endif; ?>
+
+<div class="autonet-tabs">
+    <button type="button" class="autonet-tab-button autonet-tab-active" data-tab="basic">Mappings</button>
+    <button type="button" class="autonet-tab-button" data-tab="advanced">Advanced</button>
+    <button type="button" class="autonet-tab-button" data-tab="activity">Activity</button>
+</div>
+
+<form method="post" action="">
+<div id="autonet-tab-basic" class="autonet-tab-panel autonet-tab-active">
+    <table id="autonet-mappings-table" class="autonet-table">
+        <thead>
+            <tr><th>Label key</th><th>Network</th><th></th></tr>
+        </thead>
+        <tbody>
+            <? foreach ($config["mappings"] as $mapping): ?>
+            <tr>
+                <td><input type="text" name="mapping_key[]" value="<?= htmlspecialchars($mapping["key"]) ?>" placeholder="com.pangolin.autonet"></td>
+                <td><input type="text" name="mapping_network[]" value="<?= htmlspecialchars($mapping["network"]) ?>" placeholder="pangolin"></td>
+                <td><button type="button" class="autonet-remove-row">Remove</button></td>
+            </tr>
+            <? endforeach; ?>
+        </tbody>
+    </table>
+    <button type="button" id="autonet-add-row">Add mapping</button>
+    <p>A container carrying <code>&lt;label key&gt;=true</code> is connected to <code>&lt;network&gt;</code> on the next reconcile pass.</p>
+</div>
+
+<div id="autonet-tab-advanced" class="autonet-tab-panel">
+    <label for="alias_label">Alias label key</label>
+    <input type="text" id="alias_label" name="alias_label" value="<?= htmlspecialchars($config["alias_label"]) ?>">
+    <p>The value of this label becomes the container's DNS alias on the network. Falls back to the container name.</p>
+
+    <label><input type="checkbox" name="auto_disconnect" <?= $config["auto_disconnect"] ? "checked" : "" ?>> Auto-disconnect when a label is removed or set to false</label>
+
+    <label for="rescan_seconds">Rescan interval (seconds)</label>
+    <input type="number" id="rescan_seconds" name="rescan_seconds" min="60" step="1" value="<?= (int)$config["rescan_seconds"] ?>">
+    <p>Minimum 60 - reconciliation runs on a cron schedule, not a live event stream.</p>
+
+    <label><input type="checkbox" name="debug" <?= $config["debug"] ? "checked" : "" ?>> Debug logging</label>
+</div>
+
+<div id="autonet-tab-activity" class="autonet-tab-panel">
+    <button type="button" id="autonet-refresh-activity">Refresh</button>
+    <table id="autonet-activity-table" class="autonet-table">
+        <thead>
+            <tr><th>Time</th><th>Action</th><th>Container</th><th>Network</th><th>Alias</th><th>Result</th></tr>
+        </thead>
+        <tbody id="autonet-activity-body"></tbody>
+    </table>
+</div>
+
+<div class="autonet-actions">
+    <button type="button" id="autonet-test-now">Test now</button>
+    <button type="submit">Save settings</button>
+</div>
+</form>
+
+<div id="autonet-test-results"></div>
