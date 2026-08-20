@@ -86,16 +86,23 @@
     vertical-align: middle;
 }
 
+#autonet-containers-table td:not(:first-child) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
 .autonet-toggle {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin-right: 10px;
+    flex: 0 0 auto;
 }
 
 .autonet-c-alias {
-    width: 140px;
-    margin-right: 10px;
+    width: 140px !important;
+    flex: 0 0 140px;
 }
 
 .autonet-c-alias:disabled {
