@@ -12,7 +12,7 @@ A **Add Labels** button on the Docker page lets you tag existing containers with
 
 ## Install
 
-Community Applications: search for "Docker Autonet".
+Community Applications: search for "Docker Autonet" (awaiting approval).
 
 Or install directly from the plugin URL:
 
