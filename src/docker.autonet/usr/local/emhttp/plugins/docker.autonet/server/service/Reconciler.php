@@ -26,6 +26,33 @@ class Reconciler
         return ["exitCode" => $exitCode, "output" => trim(implode("\n", $output))];
     }
 
+    /**
+     * Docker network names currently on the host - used to populate the
+     * network picker and to decide whether a mapping's network needs
+     * creating. Neither this plugin nor the watcher it replaced ever
+     * created a network on its own before this - connecting to one that
+     * doesn't exist just failed silently into the log.
+     */
+    public static function listNetworkNames(): array
+    {
+        $output = [];
+        exec("docker network ls --format '{{.Name}}' 2>&1", $output, $exitCode);
+        return $exitCode === 0 ? $output : [];
+    }
+
+    /**
+     * Create a Docker network if it doesn't already exist. Returns true if
+     * a network was actually created.
+     */
+    public static function ensureNetworkExists(string $network): bool
+    {
+        if (in_array($network, self::listNetworkNames(), true)) {
+            return false;
+        }
+        exec("docker network create " . escapeshellarg($network) . " 2>&1", $output, $exitCode);
+        return $exitCode === 0;
+    }
+
     private function log(string $message): void
     {
         $line = "[" . date("Y-m-d H:i:s") . "] " . $message;

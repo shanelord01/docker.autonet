@@ -297,6 +297,16 @@
     color: var(--autonet-subtle-text);
 }
 
+.autonet-network-picker {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.autonet-network-value[readonly] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .autonet-c-alias {
     width: 140px !important;
 }

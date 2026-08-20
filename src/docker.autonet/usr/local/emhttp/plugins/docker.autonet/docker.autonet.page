@@ -7,12 +7,16 @@ Markdown="false"
     $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
     require_once("$documentRoot/plugins/docker.autonet/server/config/Config.php");
     require_once("$documentRoot/plugins/docker.autonet/server/service/ContainerState.php");
+    require_once("$documentRoot/plugins/docker.autonet/server/service/Reconciler.php");
     use DockerAutonet\Config\Config;
     use DockerAutonet\Service\ContainerState;
+    use DockerAutonet\Service\Reconciler;
 
     $message = Config::formSubmit();
     $config = Config::load();
     $containerRows = ContainerState::list($config);
+    $existingNetworks = Reconciler::listNetworkNames();
+    sort($existingNetworks);
 
     $connectedCount = 0;
     $pendingCount = 0;
@@ -28,6 +32,7 @@ Markdown="false"
 ?>
 
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/docker.autonet/styles/styles.css")?>">
+<script>const autonetNetworks = <? echo json_encode($existingNetworks); ?>;</script>
 <script defer src="<?autov('/plugins/docker.autonet/scripts/settings.js')?>"></script>
 
 <div class="autonet-header-card">
@@ -83,7 +88,16 @@ Markdown="false"
                     <? foreach ($config["mappings"] as $mapping): ?>
                     <tr>
                         <td><input type="text" class="autonet-mapping-key" name="mapping_key[]" value="<?= htmlspecialchars($mapping["key"]) ?>" placeholder="com.pangolin.autonet"></td>
-                        <td><input type="text" name="mapping_network[]" value="<?= htmlspecialchars($mapping["network"]) ?>" placeholder="pangolin"></td>
+                        <td>
+                            <select class="autonet-network-picker">
+                                <option value="">Select existing...</option>
+                                <? foreach ($existingNetworks as $n): ?>
+                                <option value="<?= htmlspecialchars($n) ?>" <?= $n === $mapping["network"] ? "selected" : "" ?>><?= htmlspecialchars($n) ?></option>
+                                <? endforeach; ?>
+                                <option value="__new__" <?= !in_array($mapping["network"], $existingNetworks, true) ? "selected" : "" ?>>+ Create new network...</option>
+                            </select>
+                            <input type="text" class="autonet-network-value" name="mapping_network[]" value="<?= htmlspecialchars($mapping["network"]) ?>" placeholder="pangolin">
+                        </td>
                         <td><code class="autonet-mapping-preview"><?= htmlspecialchars($mapping["key"]) ?>=true</code></td>
                         <td><button type="button" class="autonet-remove-row"><i class="fa fa-trash"></i></button></td>
                     </tr>

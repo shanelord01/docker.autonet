@@ -7,11 +7,12 @@
 <!ENTITY launch "Settings/&name;">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/&name;.plg">
-<!ENTITY version "2026.08.20.13">
-<!ENTITY md5 "068db8889036e2d10d52060538aca42f">
+<!ENTITY support "https://forums.unraid.net/topic/200314-plugin-docker-autonet/">
+<!ENTITY version "2026.08.20.14">
+<!ENTITY md5 "f0bd2b5bd2bfa9b9bf0365502f41ee9c">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="icon.png" min="7.2.0">
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" support="&support;" icon="icon.png" min="7.2.0">
     <CHANGES>
 ###2026.08.20
 - Initial release. Combines docker.labelInjector's label-editing UI and pangolin-autonet-watcher's

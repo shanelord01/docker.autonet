@@ -2,6 +2,10 @@
 
 namespace DockerAutonet\Config;
 
+require_once(__DIR__ . "/../service/Reconciler.php");
+
+use DockerAutonet\Service\Reconciler;
+
 class Config
 {
     public const CONFIG_DIR = "/boot/config/plugins/docker.autonet";
@@ -53,11 +57,15 @@ class Config
         $keys = $_POST["mapping_key"] ?? [];
         $nets = $_POST["mapping_network"] ?? [];
         $mappings = [];
+        $createdNetworks = [];
         foreach ($keys as $i => $key) {
             $key = self::stripLabelValue(trim($key));
             $net = trim($nets[$i] ?? "");
             if ($key !== "" && $net !== "") {
                 $mappings[] = ["key" => $key, "network" => $net];
+                if (Reconciler::ensureNetworkExists($net)) {
+                    $createdNetworks[] = $net;
+                }
             }
         }
 
@@ -70,6 +78,10 @@ class Config
         ];
 
         self::save($config);
+
+        if (!empty($createdNetworks)) {
+            return "Settings saved. Created network: " . implode(", ", $createdNetworks) . ".";
+        }
         return "Settings saved.";
     }
 

@@ -35,10 +35,19 @@ $(document).ready(function () {
 
     $("#autonet-save-containers").on("click", autonetSaveContainers);
 
+    function autonetNetworkPickerHtml() {
+        const options = (typeof autonetNetworks !== "undefined" ? autonetNetworks : []).map(n =>
+            `<option value="${n}">${n}</option>`
+        ).join("");
+        return '<select class="autonet-network-picker"><option value="">Select existing...</option>' +
+            options + '<option value="__new__" selected>+ Create new network...</option></select>' +
+            '<input type="text" class="autonet-network-value" name="mapping_network[]" placeholder="pangolin">';
+    }
+
     $("#autonet-add-row").on("click", function () {
         $("#autonet-mappings-table tbody").append(
             '<tr><td><input type="text" class="autonet-mapping-key" name="mapping_key[]" placeholder="com.pangolin.autonet"></td>' +
-            '<td><input type="text" name="mapping_network[]" placeholder="pangolin"></td>' +
+            '<td>' + autonetNetworkPickerHtml() + '</td>' +
             '<td><code class="autonet-mapping-preview">=true</code></td>' +
             '<td><button type="button" class="autonet-remove-row"><i class="fa fa-trash"></i></button></td></tr>'
         );
@@ -46,6 +55,17 @@ $(document).ready(function () {
 
     $("#autonet-mappings-table").on("click", ".autonet-remove-row", function () {
         $(this).closest("tr").remove();
+    });
+
+    $("#autonet-mappings-table").on("change", ".autonet-network-picker", function () {
+        // readonly, not disabled - a disabled input is dropped from the
+        // form submission entirely, which would silently lose the mapping.
+        const $value = $(this).closest("tr").find(".autonet-network-value");
+        if ($(this).val() === "__new__") {
+            $value.val("").prop("readonly", false).trigger("focus");
+        } else {
+            $value.val($(this).val()).prop("readonly", true);
+        }
     });
 
     function autonetBareLabelKey($input) {
