@@ -24,7 +24,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
     tar_command="gtar"
     sed_prefix="-i ''"
 fi
-$tar_command --owner=root --group=root -cJf "$filename" .
+$tar_command --sort=name --mtime="@0" --owner=root --group=root -cJf "$filename" .
 
 cd - || exit
 
