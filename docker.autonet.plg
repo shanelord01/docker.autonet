@@ -1,13 +1,14 @@
 <?xml version="1.0" standalone="yes"?>
 <!DOCTYPE PLUGIN [
     <!ENTITY name "docker.autonet">
-<!ENTITY author "shanelord01">
-<!ENTITY github "&author;/&name;">
+<!ENTITY githubuser "shanelord01">
+<!ENTITY author "Shane Lord">
+<!ENTITY github "&githubuser;/&name;">
 <!ENTITY launch "Settings/Autonet">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/&name;.plg">
 <!ENTITY version "2026.08.20">
-<!ENTITY md5 "9008fe0b1af7e483f14cd889982ef589">
+<!ENTITY md5 "b42c41ec05af837d3bdb8d9b657b47ea">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="icon.png" min="7.2.0">
