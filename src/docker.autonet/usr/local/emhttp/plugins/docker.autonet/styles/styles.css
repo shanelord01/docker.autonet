@@ -111,6 +111,24 @@
     border-bottom: 1px solid rgba(128, 128, 128, 0.2);
 }
 
+.autonet-tab-panel > label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 4px;
+}
+
+.autonet-tab-panel > input[type="text"],
+.autonet-tab-panel > input[type="number"] {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.autonet-tab-panel > p {
+    margin-top: 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+}
+
 .autonet-actions {
     margin-top: 16px;
     display: flex;
